@@ -239,7 +239,7 @@ def fetch_adzuna(days_back: int = 7) -> list:
 
                     salary_min = job.get('salary_min', '')
                     salary_max = job.get('salary_max', '')
-                    salary = f"{salary_min}" + (f" – {salary_max}" if salary_max else '')
+                    salary = f"{salary_min}" + (f" - {salary_max}" if salary_max else '')
 
                     jobs.append({
                         'id':              generate_id('adzuna', str(job.get('id', ''))),
@@ -384,7 +384,7 @@ def fetch_reed(days_back: int = 7) -> list:
 
                 sal_min = job.get('minimumSalary', '')
                 sal_max = job.get('maximumSalary', '')
-                salary  = f"{sal_min}" + (f" – {sal_max}" if sal_max else '')
+                salary  = f"{sal_min}" + (f" - {sal_max}" if sal_max else '')
 
                 jobs.append({
                     'id':              generate_id('reed', str(job.get('jobId', ''))),

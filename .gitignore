@@ -1,6 +1,9 @@
 # Database (generated at runtime)
 *.db
 
+# Config contains real API keys — never commit this
+config.json
+
 # Python
 __pycache__/
 *.pyc
