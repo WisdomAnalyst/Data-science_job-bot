@@ -5,6 +5,7 @@ Free (no key):   Remotive, Arbeitnow, We Work Remotely RSS
 Needs free key:  Adzuna, JSearch (RapidAPI → LinkedIn/Indeed/Glassdoor), Reed UK
 """
 
+import os
 import time
 import json
 import calendar
@@ -25,11 +26,27 @@ HEADERS = {'User-Agent': 'DSJobBot/2.0 (+https://github.com/dsbot)'}
 # ── Config loader ────────────────────────────────────────────────────────────
 
 def load_config() -> dict:
+    """Load config from config.json, then overlay any environment variables."""
     try:
         with open(CONFIG_PATH) as f:
-            return json.load(f)
+            cfg = json.load(f)
     except Exception:
-        return {"api_keys": {}, "settings": {"days_back": 7}}
+        cfg = {"api_keys": {}, "settings": {"days_back": 7}}
+
+    # Environment variables override config.json (used in cloud deployments)
+    keys = cfg.setdefault("api_keys", {})
+    env_map = {
+        "ADZUNA_APP_ID":       "adzuna_app_id",
+        "ADZUNA_APP_KEY":      "adzuna_app_key",
+        "JSEARCH_RAPIDAPI_KEY": "jsearch_rapidapi_key",
+        "REED_API_KEY":        "reed_api_key",
+    }
+    for env_var, cfg_key in env_map.items():
+        val = os.environ.get(env_var)
+        if val:
+            keys[cfg_key] = val
+
+    return cfg
 
 
 # ════════════════════════════════════════════════════════════════════════════
