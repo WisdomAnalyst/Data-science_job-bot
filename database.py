@@ -4,7 +4,7 @@ database.py — SQLite storage layer for DS Job Bot.
 
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "jobs.db"
@@ -66,7 +66,7 @@ def upsert_jobs(jobs: list):
     conn = get_conn()
     try:
         c = conn.cursor()
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         for job in jobs:
             try:
                 c.execute('''
@@ -105,7 +105,7 @@ def log_fetch(source: str, jobs_found: int, status: str, error: str = ''):
     try:
         conn.execute(
             'INSERT INTO fetch_log (fetch_date, source, jobs_found, status, error) VALUES (?,?,?,?,?)',
-            (datetime.utcnow().isoformat(), source, jobs_found, status, error)
+            (datetime.now(timezone.utc).isoformat(), source, jobs_found, status, error)
         )
         conn.commit()
     finally:

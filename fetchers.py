@@ -67,7 +67,7 @@ def fetch_remotive(days_back: int = 7) -> list:
                     'description':     desc,
                     'apply_url':       job.get('url', ''),
                     'source':          'Remotive',
-                    'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                    'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       True,
                     'nigeria_friendly': detect_nigeria_friendly(location, desc),
                     'tags':            job.get('tags', []),
@@ -117,7 +117,7 @@ def fetch_arbeitnow(days_back: int = 7) -> list:
                     'description':     desc,
                     'apply_url':       job.get('url', ''),
                     'source':          'Arbeitnow',
-                    'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                    'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       is_remote,
                     'nigeria_friendly': detect_nigeria_friendly('worldwide' if is_remote else location, desc),
                     'tags':            job.get('tags', []),
@@ -179,7 +179,7 @@ def fetch_weworkremotely(days_back: int = 7) -> list:
                     'description':     desc,
                     'apply_url':       entry.get('link', ''),
                     'source':          'WeWorkRemotely',
-                    'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                    'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       True,
                     'nigeria_friendly': True,
                     'tags':            [],
@@ -248,7 +248,7 @@ def fetch_adzuna(days_back: int = 7) -> list:
                         'description':     desc,
                         'apply_url':       job.get('redirect_url', ''),
                         'source':          'Adzuna',
-                        'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                        'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                         'is_remote':       is_remote,
                         'nigeria_friendly': detect_nigeria_friendly(location, desc) if is_remote else False,
                         'tags':            [],
@@ -333,7 +333,7 @@ def fetch_jsearch(days_back: int = 7) -> list:
                     'description':     desc,
                     'apply_url':       job.get('job_apply_link', ''),
                     'source':          publisher,
-                    'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                    'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       is_remote,
                     'nigeria_friendly': detect_nigeria_friendly('worldwide' if is_remote else location, desc),
                     'tags':            job.get('job_required_skills') or [],
@@ -393,7 +393,7 @@ def fetch_reed(days_back: int = 7) -> list:
                     'description':     desc,
                     'apply_url':       job.get('jobUrl', ''),
                     'source':          'Reed',
-                    'posted_date':     posted.isoformat() if posted else datetime.utcnow().isoformat(),
+                    'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       is_remote,
                     'nigeria_friendly': detect_nigeria_friendly(location, desc),
                     'tags':            [],
@@ -430,7 +430,7 @@ def fetch_all_jobs(days_back: int = 7) -> tuple:
     ]
 
     for name, fn in sources:
-        print(f"  ➜ {name}…", end=' ', flush=True)
+        print(f"  -> {name}...", end=' ', flush=True)
         try:
             batch = fn(days_back)
             results[name] = len(batch)
@@ -465,5 +465,5 @@ def fetch_all_jobs(days_back: int = 7) -> tuple:
         REGION_PRIORITY.get(j.get('region', 'Other'), 7),
     ))
 
-    print(f"\n  ✔ {len(unique)} unique jobs (raw: {len(all_jobs)})")
+    print(f"\n  [done] {len(unique)} unique jobs (raw: {len(all_jobs)})")
     return unique, results

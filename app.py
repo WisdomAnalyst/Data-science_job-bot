@@ -4,7 +4,7 @@ app.py — Flask web server + background scheduler for DS Job Bot.
 
 import json
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import schedule
@@ -55,7 +55,7 @@ def _do_fetch():
         settings  = cfg.get('settings', {})
         days_back = settings.get('days_back', 7)
         purge_days = settings.get('purge_older_than_days', 14)
-        print(f"\n[{datetime.utcnow().isoformat()}] Fetching jobs (last {days_back} days)…")
+        print(f"\n[{datetime.now(timezone.utc).isoformat()}] Fetching jobs (last {days_back} days)...")
         jobs, results = fetch_all_jobs(days_back)
         database.upsert_jobs(jobs)
         database.purge_old_jobs(days=purge_days)
@@ -63,7 +63,7 @@ def _do_fetch():
             database.log_fetch(source, count, 'success')
         with _fetch_lock:
             _fetch_state['last_results'] = results
-            _fetch_state['last_run']     = datetime.utcnow().isoformat()
+            _fetch_state['last_run']     = datetime.now(timezone.utc).isoformat()
         print(f"[Fetch complete] {sum(results.values())} total, {len(jobs)} unique stored.")
     except Exception as e:
         with _fetch_lock:
@@ -153,10 +153,10 @@ if __name__ == '__main__':
     if cfg.get('settings', {}).get('auto_fetch_on_start', True):
         _background_fetch()
 
-    print("\n" + "═" * 60)
+    print("\n" + "=" * 60)
     print("  DS Job Bot Dashboard")
     print("  http://localhost:5000")
     print("  Auto-fetches daily at 06:00 UTC")
-    print("═" * 60 + "\n")
+    print("=" * 60 + "\n")
 
     app.run(debug=False, port=5000, host='0.0.0.0', threaded=True)

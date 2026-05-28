@@ -80,11 +80,11 @@ NOT_NG_PATTERNS = [
 
 # ── Core helpers ─────────────────────────────────────────────────────────────
 
-def strip_html(html_text: str) -> str:
+def strip_html(html_text) -> str:
     """Strip HTML tags from a string."""
     if not html_text:
         return ''
-    soup = BeautifulSoup(html_text, 'lxml')
+    soup = BeautifulSoup(str(html_text), 'lxml')
     return soup.get_text(separator=' ', strip=True)
 
 
@@ -94,7 +94,7 @@ def clean_description(text: str, max_length: int = 600) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     if len(text) > max_length:
         truncated = text[:max_length].rsplit(' ', 1)
-        text = (truncated[0] if len(truncated[0]) > 0 else text[:max_length]) + '…'
+        text = (truncated[0] if len(truncated[0]) > 0 else text[:max_length]) + '...'
     return text
 
 
