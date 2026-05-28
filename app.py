@@ -138,21 +138,21 @@ def api_fetch_status():
     return jsonify(_fetch_state)
 
 
+# ── Startup (runs under both gunicorn and direct python app.py) ──────────────
+
+database.init_db()
+
+_cfg = load_config()
+
+sched_thread = threading.Thread(target=_run_scheduler, daemon=True)
+sched_thread.start()
+
+if _cfg.get('settings', {}).get('auto_fetch_on_start', True):
+    _background_fetch()
+
 # ── Entry point ──────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    database.init_db()
-
-    cfg = load_config()
-
-    # Start daily scheduler
-    sched_thread = threading.Thread(target=_run_scheduler, daemon=True)
-    sched_thread.start()
-
-    # Optional auto-fetch on start
-    if cfg.get('settings', {}).get('auto_fetch_on_start', True):
-        _background_fetch()
-
     print("\n" + "=" * 60)
     print("  DS Job Bot Dashboard")
     print("  http://localhost:5000")
