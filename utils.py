@@ -20,6 +20,13 @@ DS_KEYWORDS = [
     'applied scientist', 'research scientist', 'analytics engineer',
     'mlops engineer', 'ai researcher', 'quantitative analyst',
     'data analyst', 'business intelligence', 'bi engineer',
+    # broader AI/ML titles
+    'artificial intelligence', 'generative ai', 'gen ai', 'llm engineer',
+    'large language model', 'prompt engineer', 'ai architect',
+    'data labeling', 'data annotation', 'ai trainer', 'ml ops',
+    'data engineer', 'big data', 'feature engineer',
+    'reinforcement learning', 'neural network', 'model training',
+    'ai product', 'ai specialist', 'ai developer',
 ]
 
 # ── Level patterns ───────────────────────────────────────────────────────────

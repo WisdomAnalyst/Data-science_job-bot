@@ -98,7 +98,11 @@ def fetch_arbeitnow(days_back: int = 7) -> list:
                 if not is_data_science_role(title, desc):
                     continue
 
-                posted = parse_date(job.get('created_at', job.get('posted_at', '')))
+                raw_date = job.get('created_at', job.get('posted_at', ''))
+                if isinstance(raw_date, (int, float)):
+                    posted = datetime.fromtimestamp(raw_date, tz=timezone.utc)
+                else:
+                    posted = parse_date(raw_date)
                 if posted and not is_within_days(posted, days_back):
                     continue
 
@@ -137,7 +141,7 @@ def fetch_weworkremotely(days_back: int = 7) -> list:
     """Remote jobs from We Work Remotely RSS feeds."""
     jobs = []
     feeds = [
-        'https://weworkremotely.com/categories/remote-data-science-jobs.rss',
+        'https://weworkremotely.com/remote-jobs.rss',
         'https://weworkremotely.com/categories/remote-programming-jobs.rss',
     ]
 

@@ -14,7 +14,7 @@
   },
 
   "settings": {
-    "days_back":              7,
+    "days_back":              14,
     "auto_fetch_on_start":    true,
     "daily_fetch_time_utc":   "06:00",
     "max_jobs_db":            1000,
