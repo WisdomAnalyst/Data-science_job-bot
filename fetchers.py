@@ -312,30 +312,31 @@ def fetch_jsearch(days_back: int = 7) -> list:
             r.raise_for_status()
 
             for job in r.json().get('data', []):
-                title = job.get('job_title', '')
-                desc  = clean_description(job.get('job_description', ''))
+                title = job.get('job_title') or ''
+                desc  = clean_description(job.get('job_description') or '')
                 if not is_data_science_role(title, desc):
                     continue
 
-                loc_parts = [job.get('job_city',''), job.get('job_state',''), job.get('job_country','')]
+                loc_parts = [job.get('job_city') or '', job.get('job_state') or '', job.get('job_country') or '']
                 location  = ', '.join(p for p in loc_parts if p)
                 is_remote = bool(job.get('job_is_remote', False))
 
-                posted = parse_date(job.get('job_posted_at_datetime_utc', ''))
+                posted = parse_date(job.get('job_posted_at_datetime_utc') or '')
                 if posted and not is_within_days(posted, days_back):
                     continue
 
-                publisher = job.get('job_publisher', 'LinkedIn/Indeed')
+                publisher = job.get('job_publisher') or 'LinkedIn/Indeed'
+                emp_type  = job.get('job_employment_type') or 'FULLTIME'
                 jobs.append({
-                    'id':              generate_id('jsearch', job.get('job_id', title[:30])),
+                    'id':              generate_id('jsearch', job.get('job_id') or title[:30]),
                     'title':           title,
-                    'company':         job.get('employer_name', 'Unknown'),
+                    'company':         job.get('employer_name') or 'Unknown',
                     'location':        location or ('Remote' if is_remote else 'Unknown'),
                     'region':          'Remote' if is_remote else detect_region(location),
                     'level':           detect_level(title, desc),
-                    'job_type':        job.get('job_employment_type', 'FULLTIME').lower(),
+                    'job_type':        emp_type.lower(),
                     'description':     desc,
-                    'apply_url':       job.get('job_apply_link', ''),
+                    'apply_url':       job.get('job_apply_link') or '',
                     'source':          publisher,
                     'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       is_remote,
@@ -451,9 +452,9 @@ def fetch_all_jobs(days_back: int = 7) -> tuple:
     unique: list = []
     for job in all_jobs:
         key = (
-            f"{job['title'].lower()[:40]}_"
-            f"{job.get('company','').lower()[:25]}_"
-            f"{job.get('region','').lower()}"
+            f"{(job.get('title') or '').lower()[:40]}_"
+            f"{(job.get('company') or '').lower()[:25]}_"
+            f"{(job.get('region') or '').lower()}"
         )
         if key not in seen:
             seen.add(key)
