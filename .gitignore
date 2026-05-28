@@ -1,6 +1,9 @@
 # Database (generated at runtime)
 *.db
 
+# Server log
+app_server.log
+
 # Config contains real API keys — never commit this
 config.json
 
