@@ -185,7 +185,7 @@ def fetch_weworkremotely(days_back: int = 7) -> list:
                     'source':          'WeWorkRemotely',
                     'posted_date':     posted.isoformat() if posted else datetime.now(timezone.utc).isoformat(),
                     'is_remote':       True,
-                    'nigeria_friendly': True,
+                    'nigeria_friendly': detect_nigeria_friendly('worldwide', desc),
                     'tags':            [],
                     'salary':          '',
                 })

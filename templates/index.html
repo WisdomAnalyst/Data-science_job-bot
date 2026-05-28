@@ -42,7 +42,10 @@
     .stat {
       background: #0f1117; border: 1px solid #1e2535; border-radius: 10px;
       padding: 10px 18px; text-align: center; min-width: 100px; flex-shrink: 0;
+      cursor: pointer; transition: all .2s; user-select: none;
     }
+    .stat:hover { border-color: #3182ce; background: #141926; transform: translateY(-1px); }
+    .stat.stat-active { border-color: #3182ce; background: #1a2d4a; box-shadow: 0 0 0 1px #3182ce33; }
     .stat-n { font-size: 22px; font-weight: 700; }
     .stat-l { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: .6px; margin-top: 2px; }
     .c-blue   { color: #63b3ed; }
@@ -206,12 +209,12 @@
 
 <!-- ── Stats ────────────────────────────────────────────────────────────────── -->
 <div class="stats-bar">
-  <div class="stat"><div class="stat-n c-blue"   id="sTotal">—</div><div class="stat-l">Total</div></div>
-  <div class="stat"><div class="stat-n c-teal"   id="sNg">—</div><div class="stat-l">Nigeria OK</div></div>
-  <div class="stat"><div class="stat-n c-purple" id="sRem">—</div><div class="stat-l">Remote</div></div>
-  <div class="stat"><div class="stat-n c-green"  id="sJr">—</div><div class="stat-l">Junior</div></div>
-  <div class="stat"><div class="stat-n c-blue"   id="sMid">—</div><div class="stat-l">Mid</div></div>
-  <div class="stat"><div class="stat-n c-orange" id="sSr">—</div><div class="stat-l">Senior</div></div>
+  <div class="stat" onclick="activateStat(this,'total')">     <div class="stat-n c-blue"   id="sTotal">—</div><div class="stat-l">Total</div></div>
+  <div class="stat" onclick="activateStat(this,'nigeria')">   <div class="stat-n c-teal"   id="sNg">—</div><div class="stat-l">Nigeria OK</div></div>
+  <div class="stat" onclick="activateStat(this,'remote')">    <div class="stat-n c-purple" id="sRem">—</div><div class="stat-l">Remote</div></div>
+  <div class="stat" onclick="activateStat(this,'level','Junior')"><div class="stat-n c-green"  id="sJr">—</div><div class="stat-l">Junior</div></div>
+  <div class="stat" onclick="activateStat(this,'level','Mid')">  <div class="stat-n c-blue"   id="sMid">—</div><div class="stat-l">Mid</div></div>
+  <div class="stat" onclick="activateStat(this,'level','Senior')"><div class="stat-n c-orange" id="sSr">—</div><div class="stat-l">Senior</div></div>
 </div>
 
 <!-- ── Layout ───────────────────────────────────────────────────────────────── -->
@@ -437,6 +440,45 @@
   }
 
   function softFilter() { curPage=1; render(); }
+
+  function activateStat(el, type, value) {
+    const wasActive = el.classList.contains('stat-active');
+    document.querySelectorAll('.stat').forEach(s => s.classList.remove('stat-active'));
+
+    if (type === 'total') {
+      // Reset all filters
+      active.level = 'All'; active.region = 'All'; active.source = 'All';
+      document.getElementById('ngF').checked  = false;
+      document.getElementById('remF').checked = false;
+      document.querySelectorAll('.sidebar .fbtn').forEach(b => {
+        const oc = b.getAttribute('onclick') || '';
+        b.classList.toggle('active', oc.includes(",'All',"));
+      });
+    } else if (type === 'nigeria') {
+      const on = !wasActive;
+      document.getElementById('ngF').checked = on;
+      if (on) el.classList.add('stat-active');
+    } else if (type === 'remote') {
+      const on = !wasActive;
+      document.getElementById('remF').checked = on;
+      if (on) el.classList.add('stat-active');
+    } else if (type === 'level') {
+      if (!wasActive) {
+        active.level = value;
+        el.classList.add('stat-active');
+      } else {
+        active.level = 'All';
+      }
+      document.querySelectorAll('.sidebar .fbtn').forEach(b => {
+        const oc = b.getAttribute('onclick') || '';
+        if (oc.includes("setF('level'"))
+          b.classList.toggle('active', oc.includes(`'${active.level}'`));
+      });
+    }
+
+    curPage = 1; render();
+    document.querySelector('.jobs-scroll').scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // ── Data loading ───────────────────────────────────────────────────────────
 

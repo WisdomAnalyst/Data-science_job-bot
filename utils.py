@@ -75,14 +75,45 @@ WORLDWIDE_KW = [
 
 # ── Nigeria-exclusion patterns ───────────────────────────────────────────────
 NOT_NG_PATTERNS = [
-    'must be authorized to work in', 'us citizens only', 'us citizen only',
-    'security clearance', 'nato clearance', 'must have work authorization',
+    # Work-authorisation / visa blocks
+    'must be authorized to work in', 'must be legally authorized',
+    'must be eligible to work in', 'authorized to work in the us',
+    'authorized to work in the uk', 'must have work authorization',
+    'work authorization required', 'us citizens only', 'us citizen only',
+    'security clearance', 'nato clearance',
+    # Sponsorship-not-available signals
     'visa sponsorship not available', 'no visa sponsorship',
-    'eu/eea only', 'must be based in', 'on-site only',
-    'must be in office', 'requires relocation to',
+    'sponsorship is not available', 'not able to sponsor',
+    'unable to sponsor', 'cannot sponsor', 'does not sponsor',
+    'we do not sponsor', 'we are unable to provide sponsorship',
+    # Geographic locks
+    'eu/eea only', 'must be based in', 'must reside in',
+    'candidates must reside', 'applicants must be based',
+    'on-site only', 'must be in office', 'requires relocation to',
     'right to work in the uk', 'right to work in the us',
     'only candidates in', 'residents only',
+    # Geo-restricted "remote" — remote but still country-locked
+    'remote, us', 'remote (us)', 'remote - us', 'remote us only',
+    'remote, united states', 'remote (united states)', 'remote - united states',
+    'remote, uk', 'remote (uk)', 'remote - uk', 'remote uk only',
+    'remote, eu', 'remote (eu)', 'remote - eu', 'remote eu only',
+    'remote, europe', 'remote (europe)', 'remote - europe',
+    'remote, canada', 'remote (canada)', 'remote - canada',
+    'remote, australia', 'remote (australia)', 'remote - australia',
+    'remote, germany', 'remote, netherlands', 'remote, france',
+    'remote in the us', 'remote in the uk', 'remote in the eu',
+    'us remote', 'uk remote',
 ]
+
+# Geo-restricted remote patterns checked against location field only (lowercase).
+# These catch formats like "Remote • United States" that don't use punctuation.
+_GEO_REMOTE_LOCATION_PATTERNS = re.compile(
+    r'\bremote\b.{0,20}\b(us|usa|united states|uk|united kingdom|'
+    r'eu|europe|canada|australia|germany|france|netherlands)\b'
+    r'|'
+    r'\b(us|usa|united states|uk|united kingdom|'
+    r'eu|europe|canada|australia|germany|france|netherlands)\b.{0,20}\bremote\b'
+)
 
 
 # ── Core helpers ─────────────────────────────────────────────────────────────
@@ -155,18 +186,23 @@ def detect_nigeria_friendly(location: str, description: str = '') -> bool:
     """
     Return True if the role is plausibly open to Nigerian applicants.
     Logic:
-      - Remote/worldwide jobs with no explicit country restrictions → True
-      - Jobs mentioning Nigeria or Africa → True
-      - Jobs with explicit country-lock language → False
+      - Jobs with explicit Nigeria/Africa mention → True
+      - Worldwide/fully-remote with no country lock → True
+      - Geo-restricted remote (e.g. "Remote, US") → False
+      - Explicit work-auth / sponsorship blocks → False
     """
     loc_l = (location or '').lower()
     desc_l = (description or '').lower()
     combined = f"{loc_l} {desc_l}"
 
-    # Hard exclusions
+    # Hard exclusions from phrases in either field
     for pat in NOT_NG_PATTERNS:
         if pat in combined:
             return False
+
+    # Geo-restricted remote: "Remote • United States", "US Remote", etc.
+    if _GEO_REMOTE_LOCATION_PATTERNS.search(loc_l):
+        return False
 
     # Positive signals
     if 'nigeria' in combined or 'africa' in combined:
@@ -174,6 +210,7 @@ def detect_nigeria_friendly(location: str, description: str = '') -> bool:
     for kw in WORLDWIDE_KW:
         if kw in combined:
             return True
+    # "remote" alone (no country qualifier caught above) → open worldwide
     if 'remote' in loc_l:
         return True
 
