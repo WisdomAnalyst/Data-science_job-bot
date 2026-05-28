@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DS Job Bot — Data Science Roles Worldwide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #141926 0%, #0f1117 100%);
+      border-bottom: 1px solid #1e2535;
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-ds  { color: #63b3ed; }
+    .logo-bot { color: #68d391; }
+    .logo-tag { font-size: 11px; color: #4a5568; font-weight: 400; margin-top: 2px; letter-spacing: 0.5px; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .last-upd { font-size: 12px; color: #4a5568; }
+    .fetch-status { font-size: 12px; color: #63b3ed; }
+
+    .refresh-btn {
+      background: #2b4c7e; color: #63b3ed; border: 1px solid #3182ce;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 500; transition: all .2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .refresh-btn:hover:not(:disabled) { background: #3182ce; color: #fff; transform: translateY(-1px); }
+    .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Stats bar ───────────────────────────────────────────────────── */
+    .stats-bar {
+      background: #141926; border-bottom: 1px solid #1e2535;
+      padding: 12px 28px; display: flex; gap: 12px; overflow-x: auto;
+    }
+    .stat {
+      background: #0f1117; border: 1px solid #1e2535; border-radius: 10px;
+      padding: 10px 18px; text-align: center; min-width: 100px; flex-shrink: 0;
+    }
+    .stat-n { font-size: 22px; font-weight: 700; }
+    .stat-l { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: .6px; margin-top: 2px; }
+    .c-blue   { color: #63b3ed; }
+    .c-green  { color: #68d391; }
+    .c-purple { color: #b794f4; }
+    .c-orange { color: #f6ad55; }
+    .c-teal   { color: #81e6d9; }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .layout { display: flex; height: calc(100vh - 122px); }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px; flex-shrink: 0; background: #141926;
+      border-right: 1px solid #1e2535; padding: 18px 14px; overflow-y: auto;
+    }
+    .filter-hdr {
+      font-size: 10px; font-weight: 600; color: #4a5568;
+      text-transform: uppercase; letter-spacing: .8px;
+      margin: 16px 0 8px;
+    }
+    .filter-hdr:first-child { margin-top: 0; }
+
+    .search-box {
+      width: 100%; background: #0f1117; border: 1px solid #1e2535;
+      color: #e2e8f0; padding: 9px 12px; border-radius: 8px;
+      font-size: 13px; outline: none; transition: border-color .2s;
+    }
+    .search-box:focus { border-color: #3182ce; }
+    .search-box::placeholder { color: #2d3748; }
+
+    .fbtn {
+      display: block; width: 100%; text-align: left;
+      background: transparent; border: 1px solid transparent;
+      color: #718096; padding: 7px 11px; border-radius: 7px;
+      cursor: pointer; font-size: 13px; transition: all .15s; margin-bottom: 2px;
+    }
+    .fbtn:hover { background: #1e2535; color: #e2e8f0; }
+    .fbtn.active { background: #1a2d4a; border-color: #3182ce; color: #63b3ed; font-weight: 500; }
+
+    .toggle-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .toggle-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: #3182ce; cursor: pointer; }
+    .toggle-row label { font-size: 12px; color: #718096; cursor: pointer; }
+
+    /* ── Jobs panel ──────────────────────────────────────────────────── */
+    .jobs-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .jobs-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 10px; background: #0f1117;
+      border-bottom: 1px solid #1e2535; flex-shrink: 0;
+    }
+    .jobs-count { font-size: 13px; color: #4a5568; }
+    .sort-select {
+      background: #141926; border: 1px solid #1e2535; color: #a0aec0;
+      padding: 6px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; outline: none;
+    }
+
+    .jobs-scroll { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+    /* ── Job card ────────────────────────────────────────────────────── */
+    .card {
+      background: #141926; border: 1px solid #1e2535; border-radius: 12px;
+      padding: 16px 18px; margin-bottom: 10px; transition: all .2s; cursor: pointer;
+    }
+    .card:hover {
+      border-color: #3182ce; transform: translateY(-1px);
+      box-shadow: 0 4px 18px rgba(49,130,206,.12);
+    }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 7px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #e2e8f0; line-height: 1.35; }
+    .card-co    { font-size: 12px; color: #63b3ed; font-weight: 500; margin-top: 3px; }
+    .card-salary { font-size: 12px; color: #68d391; font-weight: 500; white-space: nowrap; margin-left: 12px; }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 500;
+    }
+    .b-junior   { background: rgba(47,133,90,.12);   color: #68d391; border: 1px solid rgba(47,133,90,.3); }
+    .b-mid      { background: rgba(43,76,126,.14);   color: #63b3ed; border: 1px solid rgba(43,76,126,.35); }
+    .b-senior   { background: rgba(116,66,16,.14);   color: #f6ad55; border: 1px solid rgba(116,66,16,.35); }
+    .b-remote   { background: rgba(128,90,213,.12);  color: #b794f4; border: 1px solid rgba(128,90,213,.3); }
+    .b-nigeria  { background: rgba(56,178,172,.12);  color: #81e6d9; border: 1px solid rgba(56,178,172,.3); }
+    .b-priority { background: rgba(252,211,77,.1);   color: #fcd34d; border: 1px solid rgba(252,211,77,.3); }
+    .b-source   { background: #1e2535; color: #718096; border: 1px solid #2d3748; }
+    .b-usa      { background: rgba(49,130,206,.12);  color: #63b3ed; border: 1px solid rgba(49,130,206,.3); }
+    .b-canada   { background: rgba(229,62,62,.1);    color: #fc8181; border: 1px solid rgba(229,62,62,.3); }
+    .b-uk       { background: rgba(183,121,31,.12);  color: #f6ad55; border: 1px solid rgba(183,121,31,.3); }
+    .b-europe   { background: rgba(49,151,149,.12);  color: #81e6d9; border: 1px solid rgba(49,151,149,.3); }
+    .b-ww       { background: rgba(72,187,120,.12);  color: #68d391; border: 1px solid rgba(72,187,120,.3); }
+    .b-other    { background: #1e2535; color: #718096; border: 1px solid #2d3748; }
+
+    .card-desc {
+      font-size: 12px; color: #4a5568; line-height: 1.6; margin: 6px 0;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .card-date   { font-size: 11px; color: #2d3748; }
+
+    .apply-btn {
+      background: #1a2d4a; color: #63b3ed; border: 1px solid #3182ce;
+      padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .apply-btn:hover { background: #3182ce; color: #fff; }
+
+    /* ── Pagination ──────────────────────────────────────────────────── */
+    .pagination { display: flex; justify-content: center; gap: 6px; padding: 16px 0; }
+    .pg-btn {
+      background: #141926; border: 1px solid #1e2535; color: #718096;
+      padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all .15s;
+    }
+    .pg-btn:hover, .pg-btn.active { background: #1a2d4a; border-color: #3182ce; color: #63b3ed; }
+
+    /* ── States ──────────────────────────────────────────────────────── */
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid #1e2535;
+      border-top-color: #3182ce; border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state, .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 260px; gap: 14px; color: #4a5568;
+    }
+    .empty-state h3 { font-size: 16px; color: #718096; }
+
+    /* ── Toast ───────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 22px; right: 22px;
+      background: #141926; border: 1px solid #3182ce; border-radius: 10px;
+      padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: #63b3ed; box-shadow: 0 4px 24px rgba(0,0,0,.5);
+      transition: opacity .3s; opacity: 0; pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0f1117; }
+    ::-webkit-scrollbar-thumb { background: #1e2535; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2d3748; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="header">
+  <div>
+    <div class="logo"><span class="logo-ds">DS</span> Job <span class="logo-bot">Bot</span></div>
+    <div class="logo-tag">Data Science Roles · Last 7 Days · Worldwide</div>
+  </div>
+  <div class="header-right">
+    <span class="last-upd"  id="lastUpd">—</span>
+    <span class="fetch-status" id="fetchSt"></span>
+    <button class="refresh-btn" id="refreshBtn" onclick="triggerFetch()">
+      <span id="refreshIco">⟳</span> Refresh Now
+    </button>
+  </div>
+</header>
+
+<!-- ── Stats ────────────────────────────────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-n c-blue"   id="sTotal">—</div><div class="stat-l">Total</div></div>
+  <div class="stat"><div class="stat-n c-teal"   id="sNg">—</div><div class="stat-l">Nigeria OK</div></div>
+  <div class="stat"><div class="stat-n c-purple" id="sRem">—</div><div class="stat-l">Remote</div></div>
+  <div class="stat"><div class="stat-n c-green"  id="sJr">—</div><div class="stat-l">Junior</div></div>
+  <div class="stat"><div class="stat-n c-blue"   id="sMid">—</div><div class="stat-l">Mid</div></div>
+  <div class="stat"><div class="stat-n c-orange" id="sSr">—</div><div class="stat-l">Senior</div></div>
+</div>
+
+<!-- ── Layout ───────────────────────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="filter-hdr">Search</div>
+    <input class="search-box" type="text" id="searchQ" placeholder="Title, company, skill…" oninput="softFilter()">
+
+    <div class="filter-hdr">Level</div>
+    <button class="fbtn active" onclick="setF('level','All',this)">All Levels</button>
+    <button class="fbtn"        onclick="setF('level','Junior',this)">🟢 Junior</button>
+    <button class="fbtn"        onclick="setF('level','Mid',this)">🔵 Mid-Level</button>
+    <button class="fbtn"        onclick="setF('level','Senior',this)">🟠 Senior</button>
+
+    <div class="filter-hdr">Region ★ Priority</div>
+    <button class="fbtn active" onclick="setF('region','All',this)">All Regions</button>
+    <button class="fbtn"        onclick="setF('region','USA',this)">🇺🇸 USA</button>
+    <button class="fbtn"        onclick="setF('region','Europe',this)">🇪🇺 Europe</button>
+    <button class="fbtn"        onclick="setF('region','Canada',this)">🇨🇦 Canada</button>
+    <button class="fbtn"        onclick="setF('region','UK',this)">🇬🇧 UK</button>
+    <button class="fbtn"        onclick="setF('region','Worldwide',this)">🌍 Worldwide</button>
+    <button class="fbtn"        onclick="setF('region','Remote',this)">💻 Remote</button>
+
+    <div class="filter-hdr">Source</div>
+    <button class="fbtn active" onclick="setF('source','All',this)">All Sources</button>
+    <button class="fbtn"        onclick="setF('source','Remotive',this)">Remotive</button>
+    <button class="fbtn"        onclick="setF('source','WeWorkRemotely',this)">WeWorkRemotely</button>
+    <button class="fbtn"        onclick="setF('source','Arbeitnow',this)">Arbeitnow</button>
+    <button class="fbtn"        onclick="setF('source','Adzuna',this)">Adzuna</button>
+    <button class="fbtn"        onclick="setF('source','LinkedIn',this)">LinkedIn</button>
+    <button class="fbtn"        onclick="setF('source','Indeed',this)">Indeed</button>
+    <button class="fbtn"        onclick="setF('source','Glassdoor',this)">Glassdoor</button>
+    <button class="fbtn"        onclick="setF('source','Reed',this)">Reed UK</button>
+
+    <div class="filter-hdr">Flags</div>
+    <div class="toggle-row">
+      <input type="checkbox" id="ngF" onchange="softFilter()">
+      <label for="ngF">🇳🇬 Nigeria-Friendly only</label>
+    </div>
+    <div class="toggle-row">
+      <input type="checkbox" id="remF" onchange="softFilter()">
+      <label for="remF">💻 Remote only</label>
+    </div>
+  </aside>
+
+  <!-- Jobs -->
+  <main class="jobs-panel">
+    <div class="jobs-toolbar">
+      <span class="jobs-count" id="jobCount">Loading…</span>
+      <select class="sort-select" id="sortSel" onchange="softFilter()">
+        <option value="date">Newest First</option>
+        <option value="nigeria">Nigeria-Friendly First</option>
+        <option value="priority">Priority Regions First</option>
+      </select>
+    </div>
+    <div class="jobs-scroll">
+      <div id="jobList">
+        <div class="loading-state"><div class="spinner"></div><span>Fetching data science jobs…</span></div>
+      </div>
+      <div id="pages" class="pagination"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+  <span id="toastMsg">Fetching from all sources…</span>
+</div>
+
+<script>
+  const PAGE = 20;
+  let allJobs  = [];
+  let curPage  = 1;
+  const active = { level:'All', region:'All', source:'All' };
+  let pollTimer = null;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function ago(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr), now = new Date();
+    const days = Math.floor((now - d) / 864e5);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7)  return days + 'd ago';
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+  }
+
+  const REGION_CLASS = {
+    USA:'b-usa', Canada:'b-canada', UK:'b-uk', Europe:'b-europe',
+    Worldwide:'b-ww', Remote:'b-remote', Other:'b-other'
+  };
+  const REGION_FLAG = {
+    USA:'🇺🇸', Canada:'🇨🇦', UK:'🇬🇧', Europe:'🇪🇺',
+    Worldwide:'🌍', Remote:'💻', Other:'📍'
+  };
+  const LEVEL_CLASS = { Junior:'b-junior', Mid:'b-mid', Senior:'b-senior' };
+  const LEVEL_ICON  = { Junior:'🟢', Mid:'🔵', Senior:'🟠' };
+  const PRIORITY    = new Set(['USA','Europe','Canada']);
+
+  function badge(cls, text) {
+    return `<span class="badge ${cls}">${text}</span>`;
+  }
+
+  function renderCard(j) {
+    const reg = j.region || 'Other';
+    const lvl = j.level  || 'Mid';
+    return `
+    <div class="card" onclick="openJob('${j.apply_url}')">
+      <div class="card-top">
+        <div>
+          <div class="card-title">${esc(j.title)}</div>
+          <div class="card-co">${esc(j.company || 'Unknown')}</div>
+        </div>
+        ${j.salary ? `<div class="card-salary">💰 ${esc(j.salary)}</div>` : ''}
+      </div>
+      <div class="badges">
+        ${badge(LEVEL_CLASS[lvl]||'b-mid', `${LEVEL_ICON[lvl]||'⚪'} ${lvl}`)}
+        ${badge(REGION_CLASS[reg]||'b-other', `${REGION_FLAG[reg]||'📍'} ${reg}`)}
+        ${j.is_remote     ? badge('b-remote',  '💻 Remote')          : ''}
+        ${j.nigeria_friendly ? badge('b-nigeria','🇳🇬 Nigeria OK')   : ''}
+        ${PRIORITY.has(reg)  ? badge('b-priority','⭐ Priority')      : ''}
+        ${badge('b-source', esc(j.source || '—'))}
+      </div>
+      ${j.description ? `<div class="card-desc">${esc(j.description)}</div>` : ''}
+      <div class="card-footer">
+        <span class="card-date">📅 ${ago(j.posted_date)}</span>
+        <a class="apply-btn" href="${j.apply_url}" target="_blank" onclick="event.stopPropagation()">Apply →</a>
+      </div>
+    </div>`;
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function openJob(url) { if (url) window.open(url, '_blank'); }
+
+  // ── Filter + render ────────────────────────────────────────────────────────
+
+  const REGION_ORDER = { USA:0, Europe:1, Canada:2, UK:3, Worldwide:4, Remote:5, Other:6 };
+
+  function filtered() {
+    const search  = document.getElementById('searchQ').value.toLowerCase();
+    const ngOnly  = document.getElementById('ngF').checked;
+    const remOnly = document.getElementById('remF').checked;
+    const sort    = document.getElementById('sortSel').value;
+
+    let jobs = allJobs.filter(j =>
+      (active.level  === 'All' || j.level  === active.level)  &&
+      (active.region === 'All' || j.region === active.region) &&
+      (active.source === 'All' || (j.source||'').toLowerCase().includes(active.source.toLowerCase())) &&
+      (!ngOnly  || j.nigeria_friendly) &&
+      (!remOnly || j.is_remote) &&
+      (!search  || [j.title, j.company, j.description].some(f => (f||'').toLowerCase().includes(search)))
+    );
+
+    if (sort === 'nigeria') {
+      jobs.sort((a,b) =>
+        (b.nigeria_friendly - a.nigeria_friendly) ||
+        ((REGION_ORDER[a.region]||6) - (REGION_ORDER[b.region]||6)) ||
+        (b.posted_date||'').localeCompare(a.posted_date||'')
+      );
+    } else if (sort === 'priority') {
+      jobs.sort((a,b) =>
+        ((REGION_ORDER[a.region]||6) - (REGION_ORDER[b.region]||6)) ||
+        (b.posted_date||'').localeCompare(a.posted_date||'')
+      );
+    } else {
+      jobs.sort((a,b) => (b.posted_date||'').localeCompare(a.posted_date||''));
+    }
+    return jobs;
+  }
+
+  function render() {
+    const jobs   = filtered();
+    const total  = jobs.length;
+    const start  = (curPage-1) * PAGE;
+    const slice  = jobs.slice(start, start + PAGE);
+
+    document.getElementById('jobCount').textContent =
+      total ? `Showing ${total} job${total!==1?'s':''}` : 'No jobs found';
+
+    if (!total) {
+      document.getElementById('jobList').innerHTML = `
+        <div class="empty-state">
+          <div style="font-size:44px">🔍</div>
+          <h3>No matching jobs</h3>
+          <p>Try different filters or click Refresh Now.</p>
+        </div>`;
+      document.getElementById('pages').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('jobList').innerHTML = slice.map(renderCard).join('');
+    renderPages(total);
+  }
+
+  function renderPages(total) {
+    const pages = Math.ceil(total / PAGE);
+    if (pages <= 1) { document.getElementById('pages').innerHTML=''; return; }
+    const s = Math.max(1, curPage-2), e = Math.min(pages, curPage+2);
+    let h = '';
+    if (curPage > 1) h += `<button class="pg-btn" onclick="goPage(${curPage-1})">← Prev</button>`;
+    for (let i=s; i<=e; i++) h += `<button class="pg-btn ${i===curPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    if (curPage < pages) h += `<button class="pg-btn" onclick="goPage(${curPage+1})">Next →</button>`;
+    document.getElementById('pages').innerHTML = h;
+  }
+
+  function goPage(n) { curPage=n; render(); document.querySelector('.jobs-scroll').scrollTo({top:0,behavior:'smooth'}); }
+
+  function setF(type, val, btn) {
+    active[type] = val;
+    btn.closest('.sidebar').querySelectorAll(`[onclick*="setF('${type}'"]`).forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    curPage = 1; render();
+  }
+
+  function softFilter() { curPage=1; render(); }
+
+  // ── Data loading ───────────────────────────────────────────────────────────
+
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/stats');
+      const s   = await res.json();
+      document.getElementById('sTotal').textContent = s.total || 0;
+      document.getElementById('sNg').textContent    = s.nigeria_friendly || 0;
+      document.getElementById('sRem').textContent   = s.remote || 0;
+      document.getElementById('sJr').textContent    = (s.by_level||{}).Junior || 0;
+      document.getElementById('sMid').textContent   = (s.by_level||{}).Mid    || 0;
+      document.getElementById('sSr').textContent    = (s.by_level||{}).Senior || 0;
+      if (s.last_fetch)
+        document.getElementById('lastUpd').textContent =
+          'Updated ' + new Date(s.last_fetch).toLocaleString();
+      document.getElementById('fetchSt').textContent =
+        s.fetch?.running ? '⟳ Fetching…' : '';
+    } catch(e) {}
+  }
+
+  async function loadJobs() {
+    try {
+      const res  = await fetch('/api/jobs');
+      const data = await res.json();
+      allJobs = data.jobs || [];
+      render();
+    } catch(e) {
+      document.getElementById('jobList').innerHTML = `
+        <div class="empty-state">
+          <div style="font-size:44px">❌</div>
+          <h3>Could not load jobs</h3>
+          <p>Make sure the bot is running. Check the terminal.</p>
+        </div>`;
+    }
+  }
+
+  async function triggerFetch() {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    document.getElementById('toast').classList.add('show');
+    document.getElementById('toastMsg').textContent = 'Connecting to all job sources…';
+    try {
+      const r = await fetch('/api/fetch', {method:'POST'});
+      if (r.status === 409) {
+        document.getElementById('toastMsg').textContent = 'Already fetching — please wait…';
+      } else {
+        document.getElementById('toastMsg').textContent = 'Fetching from Remotive, Arbeitnow, WWR & more…';
+        pollFetch();
+        return;
+      }
+    } catch(e) {}
+    btn.disabled = false;
+    document.getElementById('toast').classList.remove('show');
+  }
+
+  function pollFetch() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async () => {
+      try {
+        const r = await fetch('/api/fetch/status');
+        const d = await r.json();
+        if (!d.running) {
+          clearInterval(pollTimer);
+          document.getElementById('refreshBtn').disabled = false;
+          document.getElementById('toast').classList.remove('show');
+          await loadJobs();
+          await loadStats();
+        }
+      } catch(e) { clearInterval(pollTimer); }
+    }, 2500);
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  (async () => {
+    await loadStats();
+    await loadJobs();
+    setInterval(loadStats, 30000);  // refresh stats every 30 s
+  })();
+</script>
+</body>
+</html>

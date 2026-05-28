@@ -1,0 +1,23 @@
+{
+  "_comment": "DS Job Bot configuration — fill in API keys to unlock more sources.",
+
+  "api_keys": {
+    "_adzuna_note":     "Free key at https://developer.adzuna.com — unlocks US, UK, Canada, Europe via Indeed/Monster/etc.",
+    "adzuna_app_id":    "",
+    "adzuna_app_key":   "",
+
+    "_jsearch_note":    "Free tier (200 calls/month) at https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch — aggregates LinkedIn, Indeed, Glassdoor.",
+    "jsearch_rapidapi_key": "",
+
+    "_reed_note":       "Free key at https://www.reed.co.uk/developers/jobseeker — UK data science jobs.",
+    "reed_api_key":     ""
+  },
+
+  "settings": {
+    "days_back":              7,
+    "auto_fetch_on_start":    true,
+    "daily_fetch_time_utc":   "06:00",
+    "max_jobs_db":            1000,
+    "purge_older_than_days":  14
+  }
+}
